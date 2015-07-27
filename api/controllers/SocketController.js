@@ -41,7 +41,7 @@ var SocketController = {
       });
 
       socket.emit('associateKey', {
-        "appId": "c54ccf663ab4639a0e0ff421d7b0563f",
+        "appId": 1,
         "publicKey": sails.RSAKey.exportKey('public')
       });
     });
@@ -49,11 +49,13 @@ var SocketController = {
     socket.on('associatedKey', function(data) {
       console.log(data);
 
-      var encrypted = sails.RSAKey.encryptPrivate({
-        "appId": "c54ccf663ab4639a0e0ff421d7b0563f",
+      var encrypted = {
+        "appId": 1,
         "appName": "Coucou",
-        "token": "77baeb53422ca9b9d5b3be10d915cbbf"
-      }, 'base64');
+        "encrypted": sails.RSAKey.encryptPrivate({
+          "token": "77baeb53422ca9b9d5b3be10d915cbbf"
+        }, 'base64')
+      };
 
       socket.emit('checkApp', encrypted);
     });
