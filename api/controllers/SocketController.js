@@ -61,7 +61,14 @@ var SocketController = {
     });
 
     socket.on('authorized', function(data) {
-      console.log(data.text);
+      // That's ok
+      console.log(data);
+    });
+
+    socket.on('reload', function(data) {
+      // If data.appId, you have to update the appId
+      // and reload the server after
+      console.log(data);
     });
 
     socket.on('err', function(data) {
