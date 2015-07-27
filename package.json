@@ -1,8 +1,8 @@
 {
-  "name": "coucou",
+  "name": "Sails-socket-client",
   "private": true,
-  "version": "0.0.0",
-  "description": "a Sails application",
+  "version": "1.0.0",
+  "description": "",
   "keywords": [],
   "dependencies": {
     "ejs": "~0.8.4",
