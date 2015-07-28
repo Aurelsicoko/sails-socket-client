@@ -33,31 +33,43 @@ var SocketController = {
       reconnect: true
     });
 
+    sails.rsaKey = {};
+
     socket.on('connect', function(data) {
       console.log('Local server connected');
 
-      sails.RSAKey = new NodeRSA({
+      // Generate RSA key
+      sails.rsaKey.local = new NodeRSA({
         b: 2048
       });
 
-      socket.emit('associateKey', {
+      socket.emit('getPublicKey', null);
+    });
+
+    socket.on('gotPublicKey', function(publicKey) {
+      // Import SaaS public key
+      var saasPublickey = new NodeRSA();
+      saasPublickey.importKey(publicKey, 'public');
+
+      sails.rsaKey.saas = saasPublickey;
+
+      // Generate object to send to SaaS
+      var object = {
         "appId": 1,
-        "publicKey": sails.RSAKey.exportKey('public')
-      });
+        "appName": "Coucou",
+        "publicKey": sails.rsaKey.local.exportKey('public'),
+        "secretKey": "0123456789",
+        "token": "azertyuiop",
+        "env": process.env.NODE_ENV
+      };
+
+      socket.emit('check', sails.rsaKey.saas.encrypt(object));
     });
 
     socket.on('associatedKey', function(data) {
       console.log(data);
 
-      var encrypted = {
-        "appId": 1,
-        "appName": "Coucou",
-        "encrypted": sails.RSAKey.encryptPrivate({
-          "token": "77baeb53422ca9b9d5b3be10d915cbbf"
-        }, 'base64')
-      };
 
-      socket.emit('checkApp', encrypted);
     });
 
     socket.on('authorized', function(data) {
