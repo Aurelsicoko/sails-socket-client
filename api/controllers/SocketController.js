@@ -59,22 +59,21 @@ var SocketController = {
         "appName": "Coucou",
         "publicKey": sails.rsaKey.local.exportKey('public'),
         "secretKey": "0123456789",
-        "token": "azertyuiop",
+        "token": "eyJhbGciOiJIUzI1NiJ9.MQ.Lu-KcR4aCeuT9hi1K474zV3s4VaopLDCcf4nZvH6DQo",
         "env": process.env.NODE_ENV
       };
 
       socket.emit('check', sails.rsaKey.saas.encrypt(object));
     });
 
-    socket.on('associatedKey', function(data) {
-      console.log(data);
-
-
-    });
-
     socket.on('authorized', function(data) {
-      // That's ok
-      console.log(data);
+      var decryptedData = sails.rsaKey.local.decrypt(data, 'json');
+
+      if (decryptedData.status === "ok") {
+        console.log("That's ok!");
+      } else {
+        console.log("Error occured");
+      }
     });
 
     socket.on('reload', function(data) {
