@@ -71,6 +71,13 @@ var SocketController = {
 
       if (decryptedData.status === "ok") {
         console.log("That's ok!");
+        socket.emit('testEncryption', {
+          "appId": 1,
+          "token": "eyJhbGciOiJIUzI1NiJ9.MQ.Lu-KcR4aCeuT9hi1K474zV3s4VaopLDCcf4nZvH6DQo",
+          "data": sails.rsaKey.local.encryptPrivate({
+            "text": "ok"
+          })
+        });
       } else {
         console.log("Error occured");
       }
