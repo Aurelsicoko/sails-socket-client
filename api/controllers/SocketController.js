@@ -30,10 +30,11 @@ var SocketController = {
    */
   connect: function(req, res) {
     var socket = io.connect('http://localhost:1337', {
-      reconnect: true
+      'reconnect': true
     });
 
     sails.rsaKey = {};
+    sails.token = "eyJhbGciOiJIUzI1NiJ9.MQ.Lu-KcR4aCeuT9hi1K474zV3s4VaopLDCcf4nZvH6DQo";
 
     socket.on('connect', function(data) {
       console.log('Local server connected');
@@ -58,8 +59,8 @@ var SocketController = {
         "appId": 1,
         "appName": "Coucou",
         "publicKey": sails.rsaKey.local.exportKey('public'),
-        "secretKey": "0123456789",
-        "token": "eyJhbGciOiJIUzI1NiJ9.MQ.Lu-KcR4aCeuT9hi1K474zV3s4VaopLDCcf4nZvH6DQo",
+        "secretKey": "kf9HEk6JtEz8VwvEJlhDXJNLC6uApuTXURiCsIjzyaz5+xn84RpIgLVOo3Dxq13M0iuIUiBazRxDG/JoRJFOnA==",
+        "token": sails.token,
         "env": process.env.NODE_ENV
       };
 
@@ -80,6 +81,12 @@ var SocketController = {
         });
       } else {
         console.log("Error occured");
+      }
+    });
+
+    socket.on('pull', function(data, fn) {
+      if (data.from === sails.token) {
+        fn(sails);
       }
     });
 
