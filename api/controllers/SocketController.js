@@ -36,6 +36,10 @@ var SocketController = {
     sails.rsaKey = {};
     sails.token = "eyJhbGciOiJIUzI1NiJ9.MQ.Lu-KcR4aCeuT9hi1K474zV3s4VaopLDCcf4nZvH6DQo";
 
+    /**
+     * Open socket with SaaS
+     *
+     */
     socket.on('connect', function(data) {
       console.log('Local server connected');
 
@@ -44,27 +48,44 @@ var SocketController = {
         b: 2048
       });
 
-      socket.emit('getPublicKey', null);
-    });
+      /**
+       * Get publicKey to encrypt our secret data safely
+       *
+       */
+      socket.emit('getPublicKey', null, function(publicKey) {
+        if (publicKey) {
+          // Import SaaS public key
+          var saasPublickey = new NodeRSA();
+          saasPublickey.importKey(publicKey, 'public');
 
-    socket.on('gotPublicKey', function(publicKey) {
-      // Import SaaS public key
-      var saasPublickey = new NodeRSA();
-      saasPublickey.importKey(publicKey, 'public');
+          sails.rsaKey.saas = saasPublickey;
 
-      sails.rsaKey.saas = saasPublickey;
+          // Generate object to send to SaaS
 
-      // Generate object to send to SaaS
-      var object = {
-        "appId": 1,
-        "appName": "Coucou",
-        "publicKey": sails.rsaKey.local.exportKey('public'),
-        "secretKey": "kf9HEk6JtEz8VwvEJlhDXJNLC6uApuTXURiCsIjzyaz5+xn84RpIgLVOo3Dxq13M0iuIUiBazRxDG/JoRJFOnA==",
-        "token": sails.token,
-        "env": process.env.NODE_ENV
-      };
+          // Development
+          var object = {
+            "appId": 1,
+            "appName": "Coucou",
+            "publicKey": sails.rsaKey.local.exportKey('public'),
+            "secretKey": "BUt3XeKlnNw0dzDoDiVzugVcFNJETB3W0NyyEoLXpXk/F1ySsIlm/+ZYHUFiUf1eltxZ85VlMPKF+Bi1K+lZAA==",
+            "token": sails.token,
+            "env": process.env.NODE_ENV
+          };
 
-      socket.emit('check', sails.rsaKey.saas.encrypt(object));
+          // Other env
+          // var object = {
+          //   "appId": 1,
+          //   "appName": "Coucou",
+          //   "publicKey": sails.rsaKey.local.exportKey('public'),
+          //   "secretKey": "BUt3XeKlnNw0dzDoDiVzugVcFNJETB3W0NyyEoLXpXk/F1ySsIlm/+ZYHUFiUf1eltxZ85VlMPKF+Bi1K+lZAA==",
+          //   "env": 'production'
+          // };
+
+          socket.emit('check', sails.rsaKey.saas.encrypt(object));
+        } else {
+          console.log('Error occured');
+        }
+      });
     });
 
     socket.on('authorized', function(data) {
@@ -72,18 +93,34 @@ var SocketController = {
 
       if (decryptedData.status === "ok") {
         console.log("That's ok!");
+        Dev
         socket.emit('testEncryption', {
           "appId": 1,
           "token": "eyJhbGciOiJIUzI1NiJ9.MQ.Lu-KcR4aCeuT9hi1K474zV3s4VaopLDCcf4nZvH6DQo",
-          "data": sails.rsaKey.local.encryptPrivate({
-            "text": "ok"
+          "encrypted": sails.rsaKey.local.encryptPrivate({
+            "secretKey": "BUt3XeKlnNw0dzDoDiVzugVcFNJETB3W0NyyEoLXpXk/F1ySsIlm/+ZYHUFiUf1eltxZ85VlMPKF+Bi1K+lZAA==",
+            "data": "ok"
           })
         });
+
+        // Other env
+        // socket.emit('testEncryption', {
+        //   "appId": 1,
+        //   "env": "production",
+        //   "encrypted": sails.rsaKey.local.encryptPrivate({
+        //     "secretKey": "BUt3XeKlnNw0dzDoDiVzugVcFNJETB3W0NyyEoLXpXk/F1ySsIlm/+ZYHUFiUf1eltxZ85VlMPKF+Bi1K+lZAA==",
+        //     "data": "ok"
+        //   })
+        // });
       } else {
         console.log("Error occured");
       }
     });
 
+    /**
+     * Pull global sails var on server
+     *
+     */
     socket.on('pull', function(data, fn) {
       if (data.from === sails.token) {
         fn(sails);
